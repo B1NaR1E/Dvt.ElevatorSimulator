@@ -4,9 +4,9 @@ namespace Dvt.ElevatorSimulator.Interfaces;
 
 public interface IElevatorControlSystem
 {
-    Elevator GetStatus(int elevatorId);
-    void Update(int elevatorId, int floorNumber, int goalFloorNumber);
-    void Pickup(int pickupFloor, int destinationFloor);
+    Elevator GetStatus(Guid elevatorId);
+    void Pickup(int pickupFloor, int destinationFloor, int totalPassengers);
     void Step();
     bool AnyOutstandingPickups();
+    List<ElevatorLog> GetAllLogs();
 }

@@ -14,6 +14,4 @@ public class Passenger
     public Guid Id { get; }
     public int OriginatingFloor { get;}
     public int DestinationFloor { get; }
-    
-    public Direction Direction => OriginatingFloor < DestinationFloor ? Direction.Up : Direction.Down;
 }

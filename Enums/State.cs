@@ -3,5 +3,6 @@
 public enum State
 {
     Moving,
-    Idle
+    Stopped,
+    OverLimit
 }

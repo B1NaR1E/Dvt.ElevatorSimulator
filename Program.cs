@@ -1,19 +1,29 @@
 ﻿using Dvt.ElevatorSimulator;
 using Dvt.ElevatorSimulator.Interfaces;
+using Dvt.ElevatorSimulator.Models;
 
-Console.WriteLine("Please enter total number of floors:");
-var numberOfFloors = Convert.ToInt32(Console.ReadLine());
+//Console.WriteLine("Please enter total number of floors:");
+var numberOfFloors = 10; //Convert.ToInt32(Console.ReadLine());
 
-Console.WriteLine("Please enter total number of elevators:");
-var numberOfElevators = Convert.ToInt32(Console.ReadLine());
+//Console.WriteLine("Please enter total number of elevators:");
+var numberOfElevators = 10; //Convert.ToInt32(Console.ReadLine());
 
-Console.WriteLine("Please enter total number of requests:");
-var numberOfRequests = Convert.ToInt32(Console.ReadLine());
+//Console.WriteLine("Please enter total number of requests:");
+var numberOfRequests = 200; //Convert.ToInt32(Console.ReadLine());
+
+var maxumumPassengers = 5;
 
 var pickupCount = 0;
 var stepCount = 0;
 var random = new Random();
-IElevatorControlSystem system = new ElevatorControlSystem(numberOfElevators);
+var passengerLimit = 5;
+
+List<Elevator> elevators = Enumerable.Range(0, numberOfElevators)
+    .Select(eid => 
+        new Elevator(new ElevatorPassengerManager(maxumumPassengers), new ElevatorLogManager()))
+    .ToList();
+
+IElevatorControlSystem system = new ElevatorControlSystem(elevators);
 
 
 while (pickupCount < numberOfRequests)
@@ -22,16 +32,46 @@ while (pickupCount < numberOfRequests)
     var destinationFloor = random.Next(1, numberOfFloors + 1);
     if (originatingFloor != destinationFloor)
     {
-        system.Pickup(originatingFloor, destinationFloor);
+        var totalPassengers = random.Next(1, maxumumPassengers + 1);
+        system.Pickup(originatingFloor, destinationFloor, totalPassengers);
         pickupCount++;
     }
 }
 
-while (system.AnyOutstandingPickups())
-{
-    system.Step();
-    stepCount++;
-}
+Console.Clear();
+Console.Write("WELCOME TO THE ELEVATOR SIMULATOR\n-------------------------------------------\n\nPlease select one of the following options:\n\n1. Start Simulation.\n2. Exit\n\n-->");
 
-Console.WriteLine("Transported {0} elevator riders to their requested destinations in {1} steps.", pickupCount, stepCount);
-Console.ReadLine();
+var input = Convert.ToInt32(Console.ReadLine());
+if (input == 1)
+{
+    Console.Clear();
+    Console.Write($"SIMULATOR RUNNING\n---------------------------------\nTotal Elevators: {numberOfElevators}\nTotal Floors: {numberOfFloors}\nTotal Passengers: {numberOfRequests}\n");
+    Console.Write("Processing:");
+    while (system.AnyOutstandingPickups())
+    {
+        system.Step();
+        stepCount++;
+        Console.Write("*");
+    }
+    Console.Write($"\nDONE!\n\nTransported {numberOfRequests} passengers to their requested destinations in {stepCount} steps.\n");
+    
+    Console.Write("Please select one of the following options:\n\n1. View Elevator Reports.\n2. Exit\n\n-->");
+    input = Convert.ToInt32(Console.ReadLine());
+    if (input == 1)
+    {
+        Console.Clear();
+        foreach (var elevator in elevators)
+        {
+            Console.WriteLine($"ELEVATOR {elevator.Id} REPORT");
+            Console.WriteLine("-------------------------------");
+
+            foreach (var elevatorLog in elevator.GetElevatorLogs())
+            {
+                Console.WriteLine($"[{elevatorLog.Created}]: {elevatorLog.Message} CurrentFloor: {elevatorLog.CurrentFloor}, Destination: {elevatorLog.CurrentDestination}, TotalPassengers: {elevatorLog.TotalPassengers}");
+            }
+            Console.WriteLine("\n");
+        }
+        
+        Console.WriteLine("Please select one of the following options:\n\n1. Exit\n\n-->");
+    }
+}

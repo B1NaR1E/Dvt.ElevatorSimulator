@@ -1,116 +1,137 @@
-﻿using Dvt.ElevatorSimulator.Interfaces;
+﻿using Dvt.ElevatorSimulator.Enums;
+using Dvt.ElevatorSimulator.Interfaces;
 using Dvt.ElevatorSimulator.Models;
 
 namespace Dvt.ElevatorSimulator;
 
 public class ElevatorControlSystem : IElevatorControlSystem
 {
-    private List<Elevator> Elevators { get; set; }
-    private List<Passenger> WaitingRiders { get; set; }
+    private List<Elevator> Elevators { get; }
+    //private List<Passenger> WaitingPassengers { get; }
+    private Queue<ElevatorCallRequest> _elevatorCalls;
+    
+    private ElevatorLogManager Logger { get; }
 
-    public ElevatorControlSystem(int numberOfElevators)
+    public ElevatorControlSystem(List<Elevator> elevators)
     {
-        Elevators = Enumerable.Range(0, numberOfElevators).Select(eid => new Elevator(eid)).ToList();
-        WaitingRiders = new List<Passenger>();
+        Logger = new ElevatorLogManager();
+        Elevators = elevators;
+        //WaitingPassengers = new List<Passenger>();
+        _elevatorCalls = new Queue<ElevatorCallRequest>();
     }
-
-
-    public Elevator GetStatus(int elevatorId)
+    
+    public Elevator GetStatus(Guid elevatorId)
     {
         return Elevators.First(e => e.Id == elevatorId);
     }
 
-    public void Update(int elevatorId, int floorNumber, int goalFloorNumber)
+    public void Pickup(int pickupFloor, int destinationFloor, int totalPassengers)
     {
-        UpdateElevator(elevatorId, e =>
-        {
-            e.CurrentFloor = floorNumber;
-            e.DestinationFloor = goalFloorNumber;
-        });
+        //WaitingPassengers.Add(new Passenger(pickupFloor, destinationFloor));
+        _elevatorCalls.Enqueue(new ElevatorCallRequest(pickupFloor, destinationFloor, totalPassengers));
     }
 
-    public void Pickup(int pickupFloor, int destinationFloor)
+    private Guid ProcessRequest(ElevatorCallRequest request)
     {
-        WaitingRiders.Add(new Passenger(pickupFloor, destinationFloor));
-    }
+        var elevators = Elevators.Where(e =>
+            e is { State: State.Stopped, HasPassengers: false, Requests.Count: < 5 } || (e.State == State.Moving && e.Direction == request.Direction && e.HasCapacity && e.Requests.Count < 5)) 
+            .OrderBy(e => e.CurrentFloor)
+            .ToList();
 
-    private void UpdateElevator(int elevatorId, Action<Elevator> update)
-    {
-        Elevators = Elevators.Select(e =>
+        // if (!elevators.Any())
+        // {
+        //     elevators = Elevators.Where(e => e is { State: State.Stopped, HasCapacity: true }).ToList();
+        // }
+
+        if (!elevators.Any())
         {
-            if (e.Id == elevatorId) update(e);
-            return e;
-        }).ToList();
+            //elevators = Elevators.Where(e => e is { State: State.Stopped, HasCapacity: true }).ToList();
+            return Guid.Empty;
+        }
+        
+        var elevator = elevators.Aggregate((x, y) =>
+            Math.Abs(x.CurrentFloor - request.OriginatingFloor) < 
+            Math.Abs(y.CurrentFloor - request.OriginatingFloor) ? x : y);
+
+        return elevator.Id;
     }
 
     public void Step()
     {
-        var busyElevatorIds = new List<int>();
-
-        // unload elevators
-        Elevators = Elevators.Select(e =>
+        if (_elevatorCalls.Any())
         {
-            var disembarkingRiders = e.Passengers.Where(r => r.DestinationFloor == e.CurrentFloor).ToList();
-            if (disembarkingRiders.Any())
-            {
-                busyElevatorIds.Add(e.Id);
-                e.Passengers = e.Passengers.Where(r => r.DestinationFloor != e.CurrentFloor).ToList();
-            }
+            var request = _elevatorCalls.Dequeue();
+            var elevatorId = ProcessRequest(request);
 
-            return e;
-        }).ToList();
-
-        // Embark passengers to available elevators
-        WaitingRiders.GroupBy(r => new { r.OriginatingFloor, r.Direction }).ToList().ForEach(waitingFloor =>
-        {
-            var availableElevator =
-                Elevators.FirstOrDefault(
-                    e =>
-                        e.CurrentFloor == waitingFloor.Key.OriginatingFloor &&
-                        (e.Direction == waitingFloor.Key.Direction || !e.Passengers.Any()));
-            if (availableElevator != null)
-            {
-                busyElevatorIds.Add(availableElevator.Id);
-                var embarkingPassengers = waitingFloor.ToList();
-                UpdateElevator(availableElevator.Id, e => e.Passengers.AddRange(embarkingPassengers.ToList()));
-                WaitingRiders = WaitingRiders.Where(r => embarkingPassengers.All(er => er.Id != r.Id)).ToList();
-            }
-        });
-
-
-        Elevators.ForEach(e =>
-        {
-            var isBusy = busyElevatorIds.Contains(e.Id);
-            int destinationFloor;
-            if (e.Passengers.Any())
-            {
-                var closestDestinationFloor =
-                    e.Passengers.OrderBy(r => Math.Abs(r.DestinationFloor - e.CurrentFloor))
-                        .First()
-                        .DestinationFloor;
-                destinationFloor = closestDestinationFloor;
-            }
-            else if (e.DestinationFloor == e.CurrentFloor && WaitingRiders.Any())
-            {
-                // Lots of optimization could be done here, perhaps?
-                destinationFloor = WaitingRiders.GroupBy(r => new { r.OriginatingFloor }).OrderBy(g => g.Count())
-                    .First().Key.OriginatingFloor;
-            }
+            var elevator = Elevators.FirstOrDefault(e => e.Id == elevatorId);
+            
+            if(elevator is null)
+                _elevatorCalls.Enqueue(request); 
             else
+                elevator!.AddRequest(request);
+
+            Elevators.ForEach(e =>
             {
-                destinationFloor = e.DestinationFloor;
-            }
-
-            var floorNumber = isBusy
-                ? e.CurrentFloor
-                : e.CurrentFloor + (destinationFloor > e.CurrentFloor ? 1 : -1);
-
-            Update(e.Id, floorNumber, destinationFloor);
-        });
+                e.Move();
+            });
+        }
+        // foreach (var elevator in Elevators.Where(e => e.State == State.Stopped))
+        // {
+        //     elevator.UnloadPassengers();
+        // }
+        //
+        // var floorsWithAvailableElevators = Elevators
+        //     .Where(e => e.HasCapacity).GroupBy(e => e.CurrentFloor)
+        //     .OrderBy(e => e.Key)
+        //     .ToList();
+        //
+        // foreach (var elevators in floorsWithAvailableElevators)
+        // {
+        //     foreach (var elevator in elevators.ToList())
+        //     {
+        //         var passengers = 
+        //             WaitingPassengers
+        //             .Where(wp =>
+        //                 (wp.OriginatingFloor == elevator.CurrentFloor && wp.Direction == elevator.Direction) || 
+        //                 (wp.OriginatingFloor == elevator.CurrentFloor && !elevator.Stops.Any()))
+        //             .ToList();
+        //
+        //         if (!passengers.Any())
+        //             continue;
+        //
+        //         foreach (var passenger in passengers)
+        //         {
+        //             var result = elevator.LoadPassenger(passenger);
+        //             if (result)
+        //                 WaitingPassengers.Remove(passenger);
+        //             else
+        //                 break;
+        //         }
+        //     }
+        // }
+        //
+        // Elevators.ForEach(e =>
+        // {
+        //     if ((e.DestinationFloor == e.CurrentFloor && !e.Stops.Any()) && WaitingPassengers.Any())
+        //     {
+        //         // Lots of optimization could be done here, perhaps?
+        //         e.DestinationFloor = WaitingPassengers
+        //             .GroupBy(r => new { r.OriginatingFloor })
+        //             .OrderBy(g => g.Count())
+        //             .First().Key.OriginatingFloor;
+        //     }
+        //
+        //     e.Move();
+        // });
     }
 
     public bool AnyOutstandingPickups()
     {
-        return WaitingRiders.Any();
+        return _elevatorCalls.Any() || Elevators.Any(e => e.Requests.Any());
+    }
+
+    public List<ElevatorLog> GetAllLogs()
+    {
+        return Logger.GetAllLogs();
     }
 }

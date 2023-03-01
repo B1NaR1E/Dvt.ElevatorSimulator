@@ -4,12 +4,44 @@
     <projectFile>Dvt.ElevatorSimulator.csproj</projectFile>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="91536dc5-3696-4c9f-9f02-76cfb4b85194" name="Changes" comment="" />
+    <list default="true" id="949ad82d-7af6-40b0-a4bd-71356b77dc45" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/ElevatorLogManager.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ElevatorPassengerManager.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Enums/LogType.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Interfaces/IElevatorLogManager.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Interfaces/IPassengerManager.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Models/ElevatorCallRequest.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Models/ElevatorLog.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Dvt.ElevatorSimulator/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Dvt.ElevatorSimulator/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ElevatorControlSystem.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ElevatorControlSystem.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Enums/Direction.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Enums/Direction.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Enums/State.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Enums/State.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Interfaces/IElevator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Interfaces/IElevator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Interfaces/IElevatorControlSystem.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Interfaces/IElevatorControlSystem.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Models/Elevator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Models/Elevator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Models/Passenger.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Models/Passenger.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Program.cs" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/21c66bc396f64297ab10980937d2115983480/d6/d526dbb6/Enumerable.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/7a1ad32abaee44480b66c2c1fcee9628cca92a4cd272eced5781564201180/Number.Parsing.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/c6ad457575d35dcbff26c9a5e3fb1d92f1d3c55f25ef6ebf475367b5d8/List.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/d9d9faea5e6ed6438a777ef8c6eed41261f81d8e86488ed923ad92564f54e/ThrowHelper.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/B1NaR1E/Documents/Programing/Dvt.ElevatorSimulator/ElevatorControlSystem.cs" root0="SKIP_HIGHLIGHTING" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="false" />
   <component name="ProjectId" id="2MITRgzYYYViQSZ33n3EXygib7q" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -54,21 +86,63 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="91536dc5-3696-4c9f-9f02-76cfb4b85194" name="Changes" comment="" />
+      <changelist id="949ad82d-7af6-40b0-a4bd-71356b77dc45" name="Changes" comment="" />
       <created>1677454089507</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1677454089507</updated>
       <workItem from="1677454090624" duration="32000" />
       <workItem from="1677454434021" duration="147000" />
+      <workItem from="1677470743484" duration="13404000" />
+      <workItem from="1677506648898" duration="6126000" />
+      <workItem from="1677515820286" duration="11775000" />
+      <workItem from="1677585832192" duration="24828000" />
+      <workItem from="1677614426942" duration="1000" />
+      <workItem from="1677621972866" duration="6265000" />
+      <workItem from="1677636552342" duration="12376000" />
     </task>
+    <task id="LOCAL-00001" summary="Basic Elevator Simulator">
+      <created>1677458634008</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1677458634008</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="UnityCheckinConfiguration" checkUnsavedScenes="false" />
   <component name="UnityUnitTestConfiguration" currentTestLauncher="NUnit" />
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+    <MESSAGE value="Basic Elevator Simulator" />
+    <option name="LAST_COMMIT_MESSAGE" value="Basic Elevator Simulator" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/ElevatorControlSystem.cs</url>
+          <line>72</line>
+          <properties documentPath="C:\Users\B1NaR1E\Documents\Programing\Dvt.ElevatorSimulator\ElevatorControlSystem.cs" initialLine="72" containingFunctionPresentation="method 'Step'">
+            <startOffsets>
+              <option value="2475" />
+            </startOffsets>
+            <endOffsets>
+              <option value="2553" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="17" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+    <pin-to-top-manager>
+      <pinned-members>
+        <PinnedItemInfo parentTag="Type#Dvt.ElevatorSimulator.Models.Elevator" memberName="Id" />
+      </pinned-members>
+    </pin-to-top-manager>
   </component>
 </project>
