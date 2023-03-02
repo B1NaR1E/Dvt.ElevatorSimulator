@@ -3,5 +3,6 @@
 public enum Direction
 {
     Up,
-    Down
+    Down,
+    Static
 }

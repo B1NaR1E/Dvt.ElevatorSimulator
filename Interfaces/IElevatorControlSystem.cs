@@ -8,5 +8,7 @@ public interface IElevatorControlSystem
     void Pickup(int pickupFloor, int destinationFloor, int totalPassengers);
     void Step();
     bool AnyOutstandingPickups();
+    int GetTotalRequests();
+    int GetTotalPassengers();
     List<ElevatorLog> GetAllLogs();
 }

@@ -8,16 +8,22 @@ public class Elevator : IElevator
     public Guid Id { get; }
     public int CurrentFloor { get; set; }
     public int DestinationFloor { get; set; }
-    public List<ElevatorCallRequest> Requests { get; }
+    public List<int> Stops { get; }
     public State State { get; private set; }
-    public ElevatorCallRequest? CurrentRequest { get; private set; }
     public bool HasCapacity => _passengerManager.HasCapacity;
     public bool HasPassengers => _passengerManager.CurrentPassengers() > 0;
-    
-    public Direction Direction =>
-        (CurrentFloor == 1 || DestinationFloor > CurrentFloor) && CurrentFloor != 10
-            ? Direction.Up
-            : Direction.Down;
+
+    public Direction Direction {
+        get
+        {
+            if (CurrentFloor < DestinationFloor)
+                return Direction.Up;
+            else if (CurrentFloor == DestinationFloor && !Stops.Any())
+                return Direction.Static;
+            else
+                return Direction.Down;
+        }
+    }
     
     private readonly IPassengerManager _passengerManager;
     private readonly IElevatorLogManager<ElevatorLog> _elevatorLogManager;
@@ -28,11 +34,10 @@ public class Elevator : IElevator
         State = State.Stopped;
         CurrentFloor = 1;
         DestinationFloor = 1;
-        Requests = new List<ElevatorCallRequest>();
         
         _passengerManager = passengerManager;
         _elevatorLogManager = logManager;
-        Requests = new List<ElevatorCallRequest>();
+        Stops = new List<int>();
     }
 
     public bool LoadPassenger(int totalPassengers, int destinationFloor)
@@ -47,25 +52,28 @@ public class Elevator : IElevator
             State = State.OverLimit;
             return false;
         }
+
+        AddStop(destinationFloor);
         return true;
     }
 
-    private ElevatorCallRequest? GetCurrentRequest()
+    private int GetDestination()
     {
-        var request = Requests.MinBy(s => Math.Abs(s.DestinationFloor - CurrentFloor));
-        return request;
+        if (Stops.Any())
+            return Stops.MinBy(s => Math.Abs(s - CurrentFloor));
+        else
+            return DestinationFloor;
     }
 
-    public void AddRequest(ElevatorCallRequest callRequest)
+    public void AddStop(int destinationFloor)
     {
-        Requests.Add(callRequest);
+        if(!Stops.Contains(destinationFloor))
+            Stops.Add(destinationFloor);
     }
 
     public void Move()
     {
-        CurrentRequest = GetCurrentRequest();
-        
-        DestinationFloor = CurrentRequest?.DestinationFloor ?? DestinationFloor;
+        DestinationFloor = GetDestination();
 
         if (DestinationFloor != CurrentFloor)
         {
@@ -75,21 +83,22 @@ public class Elevator : IElevator
             else
                 MoveDown();
 
-            if (CurrentFloor == DestinationFloor || Requests.Any(r => r.OriginatingFloor == CurrentFloor))
+            if (CurrentFloor == DestinationFloor)
             {
                 State = State.Stopped;
+                Stops.Remove(CurrentFloor);
                 
-                var loadingTask = Requests.FirstOrDefault(r => r.OriginatingFloor == CurrentFloor);
-                if (loadingTask is not null)
-                {
-                    LoadPassenger(loadingTask.TotalPassengers, loadingTask.DestinationFloor);
-                }
+                //var loadingTask = Stops.FirstOrDefault(r => r.OriginatingFloor == CurrentFloor);
+                //if (loadingTask is not null)
+                //{
+                //    LoadPassenger(loadingTask.TotalPassengers, loadingTask.DestinationFloor);
+                //}
                 
-                if(Requests.Any(r => r.DestinationFloor == DestinationFloor))
-                {
-                    UnloadPassengers();
-                    Requests.RemoveAll(r => r.DestinationFloor == CurrentFloor);
-                }
+                //if(Stops.Any(r => r.DestinationFloor == DestinationFloor))
+                //{
+                //    UnloadPassengers();
+                //    Stops.RemoveAll(r => r.DestinationFloor == CurrentFloor);
+                //}
             }
         }
     }
@@ -117,10 +126,17 @@ public class Elevator : IElevator
 
     public int UnloadPassengers()
     {
+        int totalPassengersUnloaded;
         if (_passengerManager.OverPassengerLimit)
+        {
             State = State.Stopped;
-        
-        int totalPassengersUnloaded = _passengerManager.UnloadPassengers(CurrentFloor);;
+            totalPassengersUnloaded = _passengerManager.UnloadOverLimitPassengers(CurrentFloor);
+
+        }
+        else
+        {
+            totalPassengersUnloaded = _passengerManager.UnloadPassengers(CurrentFloor);
+        }    
 
         if (totalPassengersUnloaded != 0)
         {
@@ -134,6 +150,11 @@ public class Elevator : IElevator
     public List<ElevatorLog> GetElevatorLogs()
     {
         return _elevatorLogManager.GetAllLogs();
+    }
+
+    public int TotalPassengers()
+    {
+        return _passengerManager.CurrentPassengers();
     }
 
     private void CreateLog(LogType type, string message)

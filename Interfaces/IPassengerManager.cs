@@ -9,6 +9,7 @@ public interface IPassengerManager
     int CurrentCapacity();
     void LoadPassenger(Passenger passenger);
     int UnloadPassengers(int floorNumber);
+    int UnloadOverLimitPassengers(int floorNumber);
     int CurrentPassengers();
 
 }

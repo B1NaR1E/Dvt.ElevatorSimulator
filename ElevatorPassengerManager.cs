@@ -40,4 +40,9 @@ public class ElevatorPassengerManager : IPassengerManager
     {
         return Passengers.Count;
     }
+
+    public int UnloadOverLimitPassengers(int floorNumber)
+    {
+        return Passengers.RemoveAll(p => p.OriginatingFloor == floorNumber);
+    }
 }
