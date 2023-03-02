@@ -10,25 +10,26 @@ public class Elevator : IElevator
     public int DestinationFloor { get; set; }
     public List<int> Stops { get; }
     public State State { get; private set; }
+    
     public bool HasCapacity => _passengerManager.HasCapacity;
     public bool HasPassengers => _passengerManager.CurrentPassengers() > 0;
-
+    
+    private readonly IPassengerManager _passengerManager;
+    private readonly int _totalFloors;
+    
     public Direction Direction {
         get
         {
             if (CurrentFloor < DestinationFloor)
                 return Direction.Up;
-            else if (CurrentFloor == DestinationFloor && !Stops.Any())
+            if (CurrentFloor == DestinationFloor && !Stops.Any())
                 return Direction.Static;
-            else
-                return Direction.Down;
+            
+            return Direction.Down;
         }
     }
-    
-    private readonly IPassengerManager _passengerManager;
-    private readonly IElevatorLogManager<ElevatorLog> _elevatorLogManager;
 
-    public Elevator(IPassengerManager passengerManager, IElevatorLogManager<ElevatorLog> logManager)
+    public Elevator(IPassengerManager passengerManager, int totalFloors)
     {
         Id = Guid.NewGuid();
         State = State.Stopped;
@@ -36,13 +37,13 @@ public class Elevator : IElevator
         DestinationFloor = 1;
         
         _passengerManager = passengerManager;
-        _elevatorLogManager = logManager;
+        _totalFloors = totalFloors;
         Stops = new List<int>();
     }
 
     public bool LoadPassenger(int totalPassengers, int destinationFloor)
     {
-        for (int x = 0; x < totalPassengers; x++)
+        for (var x = 0; x < totalPassengers; x++)
         {
             _passengerManager.LoadPassenger(new Passenger(CurrentFloor, destinationFloor));
         }
@@ -59,15 +60,12 @@ public class Elevator : IElevator
 
     private int GetDestination()
     {
-        if (Stops.Any())
-            return Stops.MinBy(s => Math.Abs(s - CurrentFloor));
-        else
-            return DestinationFloor;
+        return Stops.Any() ? Stops.MinBy(s => Math.Abs(s - CurrentFloor)) : DestinationFloor;
     }
 
     public void AddStop(int destinationFloor)
     {
-        if(!Stops.Contains(destinationFloor))
+        if(!Stops.Contains(destinationFloor) && destinationFloor != CurrentFloor)
             Stops.Add(destinationFloor);
     }
 
@@ -75,30 +73,28 @@ public class Elevator : IElevator
     {
         DestinationFloor = GetDestination();
 
-        if (DestinationFloor != CurrentFloor)
-        {
-            State = State.Moving;
-            if (Direction == Direction.Up)
-                MoveUp();
-            else
-                MoveDown();
-        }
+        if (DestinationFloor == CurrentFloor || State == State.OverLimit) 
+            return;
+        
+        State = State.Moving;
+        if (Direction == Direction.Up)
+            MoveUp();
+        else
+            MoveDown();
 
-        if (CurrentFloor == DestinationFloor)
-        {
-            State = State.Stopped;
-            Stops.Remove(CurrentFloor);
-        }
+        if (CurrentFloor != DestinationFloor) 
+            return;
+        
+        State = State.Stopped;
+        Stops.Remove(CurrentFloor);
     }
 
 
     private void MoveUp()
     {
-        if (CurrentFloor != 10)
+        if (CurrentFloor != _totalFloors)
         {
             ++CurrentFloor;
-            var message = $"Elevator moved up to floor: {CurrentFloor}.";
-            CreateLog(LogType.MovementLog, message);
         }
     }
 
@@ -107,8 +103,6 @@ public class Elevator : IElevator
         if (CurrentFloor != 1)
         {
             --CurrentFloor;
-            var message = $"Elevator moved down to floor: {CurrentFloor}.";
-            CreateLog(LogType.MovementLog, message);
         }
     }
 
@@ -124,30 +118,13 @@ public class Elevator : IElevator
         else
         {
             totalPassengersUnloaded = _passengerManager.UnloadPassengers(CurrentFloor);
-        }    
-
-        if (totalPassengersUnloaded != 0)
-        {
-            var message = $"Total passenger unloaded: {totalPassengersUnloaded} on floor: {CurrentFloor}.";
-            CreateLog(LogType.UnloadingLog, message);
         }
-        
-        return totalPassengersUnloaded;
-    }
 
-    public List<ElevatorLog> GetElevatorLogs()
-    {
-        return _elevatorLogManager.GetAllLogs();
+        return totalPassengersUnloaded;
     }
 
     public int TotalPassengers()
     {
         return _passengerManager.CurrentPassengers();
-    }
-
-    private void CreateLog(LogType type, string message)
-    {
-        _elevatorLogManager.Log(new ElevatorLog(Id, type, CurrentFloor, DestinationFloor, Direction,
-            _passengerManager.CurrentPassengers(), message));
     }
 }
