@@ -53,7 +53,7 @@ public class SchedulingStrategy : IStrategy
         return selectedElevator?.Id ?? Guid.Empty;
     }
 
-    private static IElevator GetClosestElevator(List<IElevator> elevators, int originatingFloor)
+    private static IElevator GetClosestElevator(IEnumerable<IElevator> elevators, int originatingFloor)
     {
         return elevators.Aggregate((x, y) =>
             Math.Abs(x.CurrentFloor - originatingFloor) <
