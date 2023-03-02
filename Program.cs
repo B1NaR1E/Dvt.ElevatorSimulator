@@ -14,10 +14,10 @@ var numberOfElevators = GetTotalElevatorsDisplay();
 
 var maximumPassengers = GetTotalPassengersInput();
 
-EmulatorSetup(numberOfElevators, numberOfFloors, maximumPassengers, false);
+EmulatorSetup(numberOfElevators, numberOfFloors, maximumPassengers);
 
 Console.Clear();
-var result = 0;
+int result;
 
 do
 {
@@ -44,8 +44,6 @@ do
         case 4:
             var numberOfRequests = GetTotalRequestsInput();
             GenerateRequests(numberOfRequests);
-            break;
-        default:
             break;
     }
 }
@@ -144,7 +142,7 @@ void DisplayElevatorStatus()
     Console.WriteLine("-------------------------------------------------------------------------------------------------------------------");
 }
 
-void EmulatorSetup(int totalElevators, int totalFloors, int maxPassengers, bool overrideLimit)
+void EmulatorSetup(int totalElevators, int totalFloors, int maxPassengers)
 {
     elevators = new List<IElevator>();
     for (var i = 1; i <= totalElevators; i++)
@@ -274,7 +272,7 @@ void AddRequestManually()
 {
     int currentFloor, destinationFloor, totalPassengers;
     string? message = null;
-    var successful = false;
+    bool successful;
     do
     {
         Console.Clear();
