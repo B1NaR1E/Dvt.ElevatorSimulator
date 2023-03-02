@@ -7,8 +7,8 @@ namespace Dvt.ElevatorSimulator;
 public class ElevatorControlSystem : IElevatorControlSystem
 {
     private List<Elevator> Elevators { get; }
-    //private List<Passenger> WaitingPassengers { get; }
     private List<ElevatorCallRequest> _elevatorCalls;
+    private Dictionary<Guid, List<ElevatorCallRequest>> elevatorJobs;
     
     private ElevatorLogManager Logger { get; }
 
@@ -16,8 +16,17 @@ public class ElevatorControlSystem : IElevatorControlSystem
     {
         Logger = new ElevatorLogManager();
         Elevators = elevators;
-        //WaitingPassengers = new List<Passenger>();
         _elevatorCalls = new List<ElevatorCallRequest>();
+        elevatorJobs = new Dictionary<Guid, List<ElevatorCallRequest>>();
+        CreateElevatorQueses();
+    }
+
+    private void CreateElevatorQueses()
+    {
+        foreach (var elevator in Elevators)
+        {
+            elevatorJobs.Add(elevator.Id, new List<ElevatorCallRequest>());
+        }
     }
 
     public Elevator GetStatus(Guid elevatorId)
@@ -37,7 +46,6 @@ public class ElevatorControlSystem : IElevatorControlSystem
 
     public void Pickup(int pickupFloor, int destinationFloor, int totalPassengers)
     {
-        //WaitingPassengers.Add(new Passenger(pickupFloor, destinationFloor));
         _elevatorCalls.Add(new ElevatorCallRequest(pickupFloor, destinationFloor, totalPassengers));
     }
 
@@ -50,7 +58,9 @@ public class ElevatorControlSystem : IElevatorControlSystem
             var elevators = Elevators.Where(e => 
             e.Direction == request.Direction &&
             e.CurrentFloor <= request.OriginatingFloor && 
-            e.HasCapacity && e.State != State.OverLimit)
+            e.HasCapacity && 
+            e.State != State.OverLimit && 
+            elevatorJobs[e.Id].Count !> 3)
                 .ToList();
 
             if (elevators.Any())
@@ -63,7 +73,8 @@ public class ElevatorControlSystem : IElevatorControlSystem
             e.Direction == request.Direction && 
             e.CurrentFloor >= request.OriginatingFloor && 
             e.HasCapacity && 
-            e.State != State.OverLimit)
+            e.State != State.OverLimit &&
+            elevatorJobs[e.Id].Count! > 3)
                 .ToList();
 
             if (elevators.Any())
@@ -72,7 +83,7 @@ public class ElevatorControlSystem : IElevatorControlSystem
 
         if(selectedElevator == null)
         {
-            var elevators = Elevators.Where(e => e.Direction == Direction.Static && e.).ToList();
+            var elevators = Elevators.Where(e => e.Direction == Direction.Static && e.State != State.OverLimit).ToList();
 
             if (elevators.Any())
                 selectedElevator = GetClosestElevator(elevators, request.OriginatingFloor);
@@ -84,78 +95,109 @@ public class ElevatorControlSystem : IElevatorControlSystem
     private Elevator? GetClosestElevator(List<Elevator> elevators, int originatingFloor)
     {
         return elevators.Aggregate((x, y) =>
-            Math.Abs(originatingFloor - x.CurrentFloor) <
-            Math.Abs(originatingFloor - y.CurrentFloor) ? x : y);
+            Math.Abs(x.CurrentFloor - originatingFloor) <
+            Math.Abs(y.CurrentFloor - originatingFloor) ? x : y);
     }
 
     public void Step()
     {
-        //if (_elevatorCalls.Any())
-        //{
-        //    var request = _elevatorCalls.Dequeue();
-        //    var elevatorId = ProcessRequest(request);
-
-        //    var elevator = Elevators.FirstOrDefault(e => e.Id == elevatorId);
-
-        //    if(elevator is null)
-        //        _elevatorCalls.Enqueue(request); 
-        //    else
-        //        elevator!.AddStop(request.OriginatingFloor);
-        //}
-
-        //Elevators.ForEach(e =>
-        //{
-        //    e
-        //    e.Move();
-        //});
-        foreach (var elevator in Elevators.Where(e => e.State == State.Stopped && e.HasPassengers))
+        if (_elevatorCalls.Any())
         {
-            elevator.UnloadPassengers();
-        }
+            var request = _elevatorCalls.First();
+            var elevatorId = ProcessRequest(request);
 
-        var floorsWithAvailableElevators = Elevators
-            .Where(e => e.HasCapacity && e.State != State.OverLimit).GroupBy(e => e.CurrentFloor)
-            .OrderBy(e => e.Key)
-            .ToList();
+            var elevator = Elevators.FirstOrDefault(e => e.Id == elevatorId);
 
-        foreach (var elevators in floorsWithAvailableElevators)
-        {
-            foreach (var elevator in elevators.ToList())
+            if (elevator is not null)
             {
-                var call =
-                    _elevatorCalls
-                    .Where(wp =>
-                        (wp.OriginatingFloor == elevator.CurrentFloor && wp.Direction == elevator.Direction) ||
-                        (wp.OriginatingFloor == elevator.CurrentFloor && !elevator.Stops.Any()))
-                    .FirstOrDefault();
-
-                if (call is null)
-                    continue;
-
-                var loaded = elevator.LoadPassenger(call.TotalPassengers, call.DestinationFloor);
-
-                if (loaded)
-                    _elevatorCalls.Remove(call);
+                elevatorJobs[elevatorId].Add(request);
+                elevator.AddStop(request.OriginatingFloor);
+                _elevatorCalls.Remove(request);
             }
         }
 
         Elevators.ForEach(e =>
         {
-            if (e.State == State.OverLimit)
-                e.UnloadPassengers();
-
-            if ((e.Direction == Direction.Static) && _elevatorCalls.Any())
+            if(e.State == State.OverLimit)
             {
-                // Lots of optimization could be done here, perhaps?
-                e.DestinationFloor = _elevatorCalls
-                    .GroupBy(r => new { r.OriginatingFloor })
-                    .OrderBy(g => g.Count())
-                    .First().Key.OriginatingFloor;
+                e.UnloadPassengers();
             }
 
+            if(e.CurrentFloor == e.DestinationFloor)
+            {
+                if((e.State == State.Stopped && e.HasPassengers))
+                {
+                    e.UnloadPassengers();
+                }
 
+                var loadPassengerJobs = elevatorJobs[e.Id].Where(j => j.OriginatingFloor == e.CurrentFloor).ToList();
+
+                foreach (var job in loadPassengerJobs)
+                {
+                    var passengersLoadedSuccessfully = e.LoadPassenger(job.TotalPassengers, job.DestinationFloor);
+                    if (passengersLoadedSuccessfully)
+                        elevatorJobs[e.Id].Remove(job);
+                    else
+                    {
+                        elevatorJobs[e.Id].Remove(job);
+                        _elevatorCalls.Add(job);
+                    }
+                }
+            }
             e.Move();
         });
+
+        //var floorsWithAvailableElevators = Elevators
+        //    .Where(e => e.HasCapacity && e.State != State.OverLimit).GroupBy(e => e.CurrentFloor)
+        //    .OrderBy(e => e.Key)
+        //    .ToList();
+
+        //foreach (var elevator in Elevators.Where(e => (e.State == State.Stopped && e.CurrentFloor == e.DestinationFloor && e.HasPassengers) || e.State == State.OverLimit))
+        //{
+        //    elevator.UnloadPassengers();
+        //}
+
+        //foreach (var elevators in floorsWithAvailableElevators)
+        //{
+        //    foreach (var elevator in elevators.ToList())
+        //    {
+        //        var call =
+        //            _elevatorCalls
+        //            .Where(wp =>
+        //                (wp.OriginatingFloor == elevator.CurrentFloor && wp.Direction == elevator.Direction) ||
+        //                (wp.OriginatingFloor == elevator.CurrentFloor && !elevator.Stops.Any()))
+        //            .FirstOrDefault();
+
+        //        if (call is null)
+        //            continue;
+
+        //        var loaded = elevator.LoadPassenger(call.TotalPassengers, call.DestinationFloor);
+
+        //        if (loaded)
+        //        {
+        //            elevatorJobs[elevator.Id.ToString()].Add(call);
+        //            _elevatorCalls.Remove(call);
+        //        }
+        //    }
+        //}
+
+        //Elevators.ForEach(e =>
+        //{
+        //    if ((e.Direction == Direction.Static) && _elevatorCalls.Any())
+        //    {
+        //        Lots of optimization could be done here, perhaps?
+        //        e.DestinationFloor = _elevatorCalls
+        //            .GroupBy(r => new { r.OriginatingFloor })
+        //            .OrderBy(g => g.Count())
+        //            .First().Key.OriginatingFloor;
+        //    }
+
+
+        //    e.Move();
+
+        //    if (e.State == State.OverLimit)
+        //        e.UnloadPassengers();
+        //});
     }
 
     public bool AnyOutstandingPickups()

@@ -6,7 +6,6 @@ using Dvt.ElevatorSimulator.Models;
 IElevatorControlSystem system;
 List<Elevator> elevators;
 
-var pickupCount = 0;
 var stepCount = 0;
 string errorMessage = null;
 
@@ -115,11 +114,12 @@ void DisplayElevatorStatus()
     int elevatorNumber = 1;
 
     string elevatorIds = "";
-    string Numbers = "";
+    string numbers = "";
     string states = "";
-    string Direction = "";
+    string direction = "";
     string currentFloor = "";
     string totalPassengers = "";
+    string destinationFloor = "";
 
     int numberOfRows = elevators.Count / 5;
 
@@ -132,26 +132,29 @@ void DisplayElevatorStatus()
         foreach (var elevator in elevatorsToPrint)
         {
             elevatorIds += $"ElevatorID: {elevator.Id}\t\t\t";
-            Numbers += $"No: {elevatorNumber}\t\t\t";
+            numbers += $"No: {elevatorNumber}\t\t\t";
             states += elevator.State == Dvt.ElevatorSimulator.Enums.State.OverLimit ? $"Status: {elevator.State}\t" : $"Status: {elevator.State}\t\t";
-            Direction += elevator.Direction == Dvt.ElevatorSimulator.Enums.Direction.Static ? $"Direction: {elevator.Direction}\t" : $"Direction: {elevator.Direction}\t\t";
+            direction += elevator.Direction == Dvt.ElevatorSimulator.Enums.Direction.Static ? $"Direction: {elevator.Direction}\t" : $"Direction: {elevator.Direction}\t\t";
             currentFloor += $"Current Floor: {elevator.CurrentFloor}\t";
+            destinationFloor += $"Destination Floor: {elevator.DestinationFloor}\t";
             totalPassengers += $"Total Passengers: {elevator.TotalPassengers()}\t";
             ++elevatorNumber;
         }
 
-        Console.WriteLine(Numbers);
+        Console.WriteLine(numbers);
         Console.WriteLine(states);
-        Console.WriteLine(Direction);
+        Console.WriteLine(direction);
         Console.WriteLine(currentFloor);
+        Console.WriteLine(destinationFloor);
         Console.WriteLine(totalPassengers);
         Console.WriteLine();
 
         elevatorIds = "";
-        Numbers = "";
+        numbers = "";
         states = "";
-        Direction = "";
+        direction = "";
         currentFloor = "";
+        destinationFloor = "";
         totalPassengers = "";
     }
 
@@ -160,11 +163,11 @@ void DisplayElevatorStatus()
 
 void EmulatorSetup(int totalElevators, int totalFloors, int maximumPassengers, bool overrideLimit)
 {
-    IPassengerManager passengerManager = new ElevatorPassengerManager(maximumPassengers);
-    IElevatorLogManager<ElevatorLog> elevatorLogManager = new ElevatorLogManager();
+    //IPassengerManager passengerManager = new ElevatorPassengerManager(maximumPassengers);
+    //IElevatorLogManager<ElevatorLog> elevatorLogManager = new ElevatorLogManager();
     elevators = Enumerable.Range(0, numberOfElevators)
     .Select(eid =>
-        new Elevator(passengerManager, elevatorLogManager))
+        new Elevator(new ElevatorPassengerManager(maximumPassengers), new ElevatorLogManager()))
     .ToList();
 
     system = new ElevatorControlSystem(elevators);
@@ -288,8 +291,8 @@ int GetTotalPassengersInput()
 void GenerateRequests(int totalRequests)
 {
     var random = new Random();
-
-    while (pickupCount < numberOfRequests)
+    int pickupCount = 0;
+    while (pickupCount < totalRequests)
     {
         var originatingFloor = random.Next(1, numberOfFloors + 1);
         var destinationFloor = random.Next(1, numberOfFloors + 1);

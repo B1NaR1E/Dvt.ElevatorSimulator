@@ -82,24 +82,12 @@ public class Elevator : IElevator
                 MoveUp();
             else
                 MoveDown();
+        }
 
-            if (CurrentFloor == DestinationFloor)
-            {
-                State = State.Stopped;
-                Stops.Remove(CurrentFloor);
-                
-                //var loadingTask = Stops.FirstOrDefault(r => r.OriginatingFloor == CurrentFloor);
-                //if (loadingTask is not null)
-                //{
-                //    LoadPassenger(loadingTask.TotalPassengers, loadingTask.DestinationFloor);
-                //}
-                
-                //if(Stops.Any(r => r.DestinationFloor == DestinationFloor))
-                //{
-                //    UnloadPassengers();
-                //    Stops.RemoveAll(r => r.DestinationFloor == CurrentFloor);
-                //}
-            }
+        if (CurrentFloor == DestinationFloor)
+        {
+            State = State.Stopped;
+            Stops.Remove(CurrentFloor);
         }
     }
 
