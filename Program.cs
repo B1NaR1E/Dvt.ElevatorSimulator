@@ -153,7 +153,7 @@ void EmulatorSetup(int totalElevators, int totalFloors, int maxPassengers)
             new Elevator(new ElevatorPassengerManager(maxPassengers), totalFloors) as IElevator<IPassenger>)
         .ToList();
 
-    IStrategy<IPassenger> schedulingStrategy = new SchedulingStrategy<IPassenger>();
+    IStrategy<IPassenger> schedulingStrategy = new BestSelectionStrategy();
     system = new ElevatorControlSystem<IPassenger>(schedulingStrategy, elevators);
 }
 

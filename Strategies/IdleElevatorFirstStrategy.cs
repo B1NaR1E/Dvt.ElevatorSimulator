@@ -4,12 +4,17 @@ using Dvt.ElevatorSimulator.Models;
 
 namespace Dvt.ElevatorSimulator.Strategies;
 
-
-public class SchedulingStrategy<TPassenger> : IStrategy<TPassenger> where TPassenger : IPassenger
+public class IdleElevatorFirstStrategy: IStrategy<IPassenger>
 {
-    public Guid ProcessRequest(List<IElevator<TPassenger>> elevators, ElevatorCallRequest request)
+    public Guid ProcessRequest(List<IElevator<IPassenger>> elevators, ElevatorCallRequest request)
     {
-        IElevator<TPassenger>? selectedElevator = null;
+        IElevator<IPassenger>? selectedElevator = null;
+        
+        var staticElevators = elevators.Where(e => e.Direction == Direction.Static && e.State != State.OverLimit)
+            .ToList();
+
+        if (staticElevators.Any())
+            return GetClosestElevator(staticElevators, request.OriginatingFloor).Id;
 
         switch (request.Direction)
         {
@@ -41,20 +46,10 @@ public class SchedulingStrategy<TPassenger> : IStrategy<TPassenger> where TPasse
             }
         }
 
-        if (selectedElevator != null)
-            return selectedElevator.Id;
-
-        var staticElevators = elevators.Where(e => e.Direction == Direction.Static && e.State != State.OverLimit)
-            .ToList();
-
-        if (staticElevators.Any())
-            selectedElevator = GetClosestElevator(staticElevators, request.OriginatingFloor);
-
-
         return selectedElevator?.Id ?? Guid.Empty;
     }
 
-    private static IElevator<TPassenger> GetClosestElevator(IEnumerable<IElevator<TPassenger>> elevators, int originatingFloor)
+    private static IElevator<IPassenger> GetClosestElevator(IEnumerable<IElevator<IPassenger>> elevators, int originatingFloor)
     {
         return elevators.Aggregate((x, y) =>
             Math.Abs(x.CurrentFloor - originatingFloor) <
