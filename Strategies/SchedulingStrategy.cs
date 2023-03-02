@@ -4,11 +4,12 @@ using Dvt.ElevatorSimulator.Models;
 
 namespace Dvt.ElevatorSimulator.Strategies;
 
-public class SchedulingStrategy : IStrategy
+
+public class SchedulingStrategy<TPassenger> : IStrategy<TPassenger> where TPassenger : IPassenger
 {
-    public Guid ProcessRequest(List<IElevator> elevators, ElevatorCallRequest request)
+    public Guid ProcessRequest(List<IElevator<TPassenger>> elevators, ElevatorCallRequest request)
     {
-        IElevator? selectedElevator = null;
+        IElevator<TPassenger>? selectedElevator = null;
 
         switch (request.Direction)
         {
@@ -53,7 +54,7 @@ public class SchedulingStrategy : IStrategy
         return selectedElevator?.Id ?? Guid.Empty;
     }
 
-    private static IElevator GetClosestElevator(IEnumerable<IElevator> elevators, int originatingFloor)
+    private static IElevator<TPassenger> GetClosestElevator(IEnumerable<IElevator<TPassenger>> elevators, int originatingFloor)
     {
         return elevators.Aggregate((x, y) =>
             Math.Abs(x.CurrentFloor - originatingFloor) <

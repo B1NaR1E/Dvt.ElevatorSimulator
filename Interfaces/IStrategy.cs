@@ -2,7 +2,7 @@
 
 namespace Dvt.ElevatorSimulator.Interfaces;
 
-public interface IStrategy
+public interface IStrategy<TPassenger> where TPassenger : IPassenger
 {
-    Guid ProcessRequest(List<IElevator> elevators, ElevatorCallRequest request);
+    Guid ProcessRequest(List<IElevator<TPassenger>> elevators, ElevatorCallRequest request);
 }

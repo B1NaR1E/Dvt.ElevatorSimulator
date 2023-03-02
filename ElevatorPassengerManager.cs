@@ -1,48 +1,38 @@
 ﻿using Dvt.ElevatorSimulator.Interfaces;
-using Dvt.ElevatorSimulator.Models;
 
 namespace Dvt.ElevatorSimulator;
 
-public class ElevatorPassengerManager : IPassengerManager
+public class ElevatorPassengerManager : IPassengerManager<IPassenger>
 {
-    private readonly int _maximumPassengers = 5;
-    private List<Passenger> Passengers { get; }
-    public bool HasCapacity => Passengers.Count < _maximumPassengers;
-    public bool OverPassengerLimit => Passengers.Count > _maximumPassengers;
+    private readonly int _maximum;
+    private readonly List<IPassenger> _passengers;
+    public bool HasCapacity => TotalPassenger() < _maximum;
+    public bool HasPassengers => _passengers.Count > 0;
+    public bool OverPassengerLimit => TotalPassenger() > _maximum;
 
-    public ElevatorPassengerManager()
+    public ElevatorPassengerManager(int maximum)
     {
-        Passengers = new List<Passenger>();
+        _maximum = maximum;
+        _passengers = new List<IPassenger>();
     }
 
-    public ElevatorPassengerManager(int maximumPassengers)
+    public void LoadPassenger(IPassenger passenger)
     {
-        _maximumPassengers = maximumPassengers;
-        Passengers = new List<Passenger>();
-    }
-
-    public void LoadPassenger(Passenger passenger)
-    {
-        Passengers.Add(passenger);
+        _passengers.Add(passenger);
     }
 
     public int UnloadPassengers(int floorNumber)
     {
-        return Passengers.RemoveAll(p => p.DestinationFloor == floorNumber);
+        return _passengers.RemoveAll(p => p.DestinationFloor == floorNumber);
     }
 
-    public int CurrentCapacity()
+    public int TotalPassenger()
     {
-        return _maximumPassengers - Passengers.Count;
-    }
-
-    public int CurrentPassengers()
-    {
-        return Passengers.Count;
+        return _passengers.Count;
     }
 
     public int UnloadOverLimitPassengers(int floorNumber)
     {
-        return Passengers.RemoveAll(p => p.OriginatingFloor == floorNumber);
+        return _passengers.RemoveAll(p => p.OriginatingFloor == floorNumber);
     }
 }

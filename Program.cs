@@ -4,9 +4,11 @@ using Dvt.ElevatorSimulator.Models;
 using Dvt.ElevatorSimulator.Strategies;
 
 IElevatorControlSystem system;
-List<IElevator> elevators;
+List<IElevator<IPassenger>> elevators;
 
 string? errorMessage = null;
+
+int steps = 0;
 
 var numberOfFloors = GetTotalFloorsDisplay();
 
@@ -32,11 +34,13 @@ do
                 Console.Clear();
                 DisplayElevatorStatus();
                 DisplayRequestInformation();
+                ++steps;
                 Thread.Sleep(1000);
             }
             break;
         case 2:
             system.Step();
+            ++steps;
             break;
         case 3:
             AddRequestManually();
@@ -44,6 +48,7 @@ do
         case 4:
             var numberOfRequests = GetTotalRequestsInput();
             GenerateRequests(numberOfRequests);
+            steps = 0;
             break;
     }
 }
@@ -53,6 +58,8 @@ void DisplayRequestInformation()
 {
     Console.WriteLine($"Total Elevator Calls Remaining: {system.GetTotalRequests()}.");
     Console.WriteLine($"Total Passengers Remaining: {system.GetTotalPassengers()}.");
+    Console.WriteLine($"Total Steps Taken: {steps}.");
+    Console.WriteLine();
 }
 
 int GetRunEmulatorDisplay()
@@ -60,22 +67,19 @@ int GetRunEmulatorDisplay()
     while (true)
     {
         Console.Clear();
+        
         DisplayElevatorStatus();
         DisplayRequestInformation();
 
         List<int> validInputs = new List<int>()
         {
-            1,
-            2,
-            3,
-            4,
-            5
+            1,2,3,4,5
         };
 
-        if (string.IsNullOrEmpty(errorMessage)) 
+        if (!string.IsNullOrEmpty(errorMessage)) 
             Console.WriteLine(errorMessage);
 
-        Console.Write("Please select one of the following options:\n1. Run Emulator\n2. Emulate Step\n3. Add Request\n4. Generate Requests\n5. Exit\n-->");
+        Console.Write("Please select one of the following options:\n1. Run Emulator\n2. Step Emulator\n3. Add Request\n4. Generate Requests\n5. Exit\n-->");
 
         bool successful = int.TryParse(Console.ReadLine(), out var input);
 
@@ -144,15 +148,13 @@ void DisplayElevatorStatus()
 
 void EmulatorSetup(int totalElevators, int totalFloors, int maxPassengers)
 {
-    elevators = new List<IElevator>();
-    for (var i = 1; i <= totalElevators; i++)
-    {
-        IElevator elevator = new Elevator(new ElevatorPassengerManager(maxPassengers), totalFloors);
-        elevators.Add(elevator);
-    }
+    elevators = Enumerable.Range(0, totalElevators)
+        .Select(_ =>
+            new Elevator(new ElevatorPassengerManager(maxPassengers), totalFloors) as IElevator<IPassenger>)
+        .ToList();
 
-    IStrategy schedulingStrategy = new SchedulingStrategy();
-    system = new ElevatorControlSystem(schedulingStrategy, elevators);
+    IStrategy<IPassenger> schedulingStrategy = new SchedulingStrategy<IPassenger>();
+    system = new ElevatorControlSystem<IPassenger>(schedulingStrategy, elevators);
 }
 
 int GetTotalElevatorsDisplay()
@@ -160,8 +162,10 @@ int GetTotalElevatorsDisplay()
     while (true)
     {
         Console.Clear();
+        Console.WriteLine();
 
-        if (string.IsNullOrEmpty(errorMessage)) Console.WriteLine(errorMessage);
+        if (!string.IsNullOrEmpty(errorMessage)) 
+            Console.WriteLine(errorMessage);
 
         Console.Write("Please enter the total number of elevators:\n-->");
 
@@ -184,10 +188,12 @@ int GetTotalFloorsDisplay()
     while (true)
     {
         Console.Clear();
+        Console.WriteLine();
 
-        if (string.IsNullOrEmpty(errorMessage)) Console.WriteLine(errorMessage);
+        if (!string.IsNullOrEmpty(errorMessage)) 
+            Console.WriteLine(errorMessage);
 
-        Console.Write("Please enter the total number of floors:\n-->");
+        Console.Write($"Please enter the total number of floors:\n-->");
 
         var successful = int.TryParse(Console.ReadLine(), out var totalFloors);
 
@@ -211,11 +217,12 @@ int GetTotalRequestsInput()
         DisplayElevatorStatus();
         DisplayRequestInformation();
 
-        if (string.IsNullOrEmpty(errorMessage)) Console.WriteLine(errorMessage);
+        if (!string.IsNullOrEmpty(errorMessage)) 
+            Console.WriteLine(errorMessage);
 
         Console.Write("Please enter the total number of requests to create:\n-->");
 
-        bool successful = int.TryParse(Console.ReadLine(), out var totalRequests);
+        var successful = int.TryParse(Console.ReadLine(), out var totalRequests);
 
         if (!successful)
         {
@@ -234,10 +241,12 @@ int GetTotalPassengersInput()
     while (true)
     {
         Console.Clear();
+        Console.WriteLine();
 
-        if (string.IsNullOrEmpty(errorMessage)) Console.WriteLine(errorMessage);
+        if (!string.IsNullOrEmpty(errorMessage)) 
+            Console.WriteLine(errorMessage);
 
-        Console.Write("Please enter the maximum number of passengers per elevator:\n-->");
+        Console.Write("Please enter the maximum number of passengers per elevator(Elevator passenger limit):\n-->");
 
         var successful = int.TryParse(Console.ReadLine(), out var totalPassengers);
 
@@ -276,9 +285,12 @@ void AddRequestManually()
     do
     {
         Console.Clear();
+        
         DisplayElevatorStatus();
         DisplayRequestInformation();
+        
         Console.WriteLine();
+        
         Console.Write($"Creating a elevator call request.\n{message}\nPlease enter current floor number:\n-->");
         successful = int.TryParse(Console.ReadLine(), out currentFloor);
 
@@ -291,23 +303,30 @@ void AddRequestManually()
             successful = false;
         }
 
-        if (currentFloor >= 1) continue;
+        if (currentFloor >= 1) 
+            continue;
+        
         message = $"ERROR: Current floor cannot be smaller than the ground floor {1}.";
         successful = false;
     }
     while (!successful);
-
+    
+    message = null;
+    
     do
     {
         Console.Clear();
+        
         DisplayElevatorStatus();
         DisplayRequestInformation();
+        
         Console.WriteLine();
+        
         Console.Write($"Creating a elevator call request.\n{message}\nPlease enter destination floor number:\nCurrent Floor: {currentFloor}.\n-->");
         successful = int.TryParse(Console.ReadLine(), out destinationFloor);
 
         if (!successful)
-            message = "ERROR: Invalid imput. Please enter a valid input.";
+            message = "ERROR: Invalid input. Please enter a valid input.";
 
         if (destinationFloor > numberOfFloors)
         {
@@ -321,36 +340,44 @@ void AddRequestManually()
             successful = false;
         }
 
-        if (destinationFloor != currentFloor) continue;
+        if (destinationFloor != currentFloor) 
+            continue;
+        
         message = $"ERROR: Destination floor cannot be the same as the current floor.";
         successful = false;
     }
     while (!successful);
-
+    
+    message = null;
+    
     do
     {
         Console.Clear();
+        
         DisplayElevatorStatus();
         DisplayRequestInformation();
+        
         Console.WriteLine();
+        
         Console.Write($"Creating a elevator call request.\n{message}\nPlease enter number of passengers:\nCurrent Floor: {currentFloor}.\nDestination Floor: {destinationFloor}\n-->");
         successful = int.TryParse(Console.ReadLine(), out totalPassengers);
 
         if (!successful)
             message = "ERROR: Invalid input. Please enter a valid input.";
-
-
+        
         if (totalPassengers < 1)
         {
             message = $"ERROR: Total passengers cannot be smaller than 1";
             successful = false;
         }
 
-        if (totalPassengers <= maximumPassengers) continue;
+        if (totalPassengers <= maximumPassengers) 
+            continue;
+        
         message = $"ERROR: Total passengers cannot be greater than the maximum allowed passengers: {maximumPassengers}";
         successful = false;
     }
     while (!successful);
-
+    
     system.Pickup(currentFloor, destinationFloor, totalPassengers);
 }

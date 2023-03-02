@@ -1,6 +1,8 @@
-﻿namespace Dvt.ElevatorSimulator.Models;
+﻿using Dvt.ElevatorSimulator.Interfaces;
 
-public class Passenger
+namespace Dvt.ElevatorSimulator.Models;
+
+public class Passenger : IPassenger
 {
     public Passenger(int originatingFloor, int destinationFloor)
     {

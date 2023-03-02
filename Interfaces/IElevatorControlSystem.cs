@@ -1,6 +1,4 @@
-﻿using Dvt.ElevatorSimulator.Models;
-
-namespace Dvt.ElevatorSimulator.Interfaces;
+﻿namespace Dvt.ElevatorSimulator.Interfaces;
 
 public interface IElevatorControlSystem
 {
