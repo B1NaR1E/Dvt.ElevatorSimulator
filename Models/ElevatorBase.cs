@@ -4,18 +4,16 @@ using Dvt.ElevatorSimulator.Interfaces;
 namespace Dvt.ElevatorSimulator.Models;
 
 public abstract class ElevatorBase<TPassenger> : IElevator<TPassenger>
-    where TPassenger : IPassenger
+    where TPassenger : Passenger
 {
     public Guid Id { get; }
     public int CurrentFloor { get; protected set; }
     public int DestinationFloor { get; private set; }
     public List<int> Stops { get; }
-    public State State { get; private set; }
-    
-    public bool HasCapacity => _passengerManager.HasCapacity;
-    public bool HasPassengers => _passengerManager.HasPassengers;
-    
-    private readonly IPassengerManager<TPassenger> _passengerManager;
+    public State State { get; protected set; }
+    public bool HasPassengers => PassengerManager.HasPassengers;
+
+    protected IPassengerManager<TPassenger> PassengerManager { get; }
 
     public Direction Direction {
         get
@@ -36,27 +34,13 @@ public abstract class ElevatorBase<TPassenger> : IElevator<TPassenger>
         CurrentFloor = 1;
         DestinationFloor = 1;
         
-        _passengerManager = passengerManager;
+        PassengerManager = passengerManager;
         Stops = new List<int>();
     }
 
-    public bool LoadPassenger(List<TPassenger> passengers)
+    bool IElevator<TPassenger>.LoadPassenger(List<TPassenger> passengers)
     {
-        foreach (var passenger in passengers)
-        {
-            _passengerManager.LoadPassenger(passenger);
-        }
-
-        var destinationFloor = passengers.First().DestinationFloor;
-        
-        if (_passengerManager.OverPassengerLimit)
-        {
-            State = State.OverLimit;
-            return false;
-        }
-
-        AddStop(destinationFloor);
-        return true;
+        return LoadPassenger(passengers);
     }
 
     public void AddStop(int destinationFloor)
@@ -85,30 +69,18 @@ public abstract class ElevatorBase<TPassenger> : IElevator<TPassenger>
         Stops.Remove(CurrentFloor);
     }
 
-    public int UnloadPassengers()
+    int IElevator<TPassenger>.UnloadPassengers()
     {
-        int totalPassengersUnloaded;
-        if (_passengerManager.OverPassengerLimit)
-        {
-            State = State.Stopped;
-            totalPassengersUnloaded = _passengerManager.UnloadOverLimitPassengers(CurrentFloor);
-        }
-        else
-        {
-            totalPassengersUnloaded = _passengerManager.UnloadPassengers(CurrentFloor);
-        }
-
-        return totalPassengersUnloaded;
+        return UnloadPassengers();
     }
 
     public int TotalPassengers()
     {
-        return _passengerManager.TotalPassenger();
+        return PassengerManager.TotalPassenger();
     }
-    
     protected abstract void MoveUp();
-
     protected abstract void MoveDown();
-    
     protected abstract int GetDestination();
+    protected abstract bool LoadPassenger(List<TPassenger> passengers);
+    protected abstract int UnloadPassengers();
 }

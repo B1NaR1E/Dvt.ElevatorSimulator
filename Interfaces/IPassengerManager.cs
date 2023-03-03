@@ -1,9 +1,10 @@
-﻿namespace Dvt.ElevatorSimulator.Interfaces;
+﻿using Dvt.ElevatorSimulator.Models;
+
+namespace Dvt.ElevatorSimulator.Interfaces;
 
 public interface IPassengerManager<in TPassenger> 
-    where TPassenger : IPassenger
+    where TPassenger : Passenger
 {
-    bool HasCapacity { get; }
     bool HasPassengers { get; }
     bool OverPassengerLimit { get; }
     void LoadPassenger(TPassenger passenger);

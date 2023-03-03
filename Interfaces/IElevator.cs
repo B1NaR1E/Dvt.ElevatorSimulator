@@ -1,8 +1,9 @@
 ﻿using Dvt.ElevatorSimulator.Enums;
+using Dvt.ElevatorSimulator.Models;
 
 namespace Dvt.ElevatorSimulator.Interfaces;
 
-public interface IElevator<TPassenger> where TPassenger : IPassenger
+public interface IElevator<TPassenger> where TPassenger : Passenger
 {
     Guid Id { get; }
     int CurrentFloor { get; }
@@ -10,7 +11,6 @@ public interface IElevator<TPassenger> where TPassenger : IPassenger
     Direction Direction { get; }
     State State { get; }
     bool HasPassengers { get; }
-    bool HasCapacity { get; }
     List<int> Stops { get; }
     bool LoadPassenger(List<TPassenger> passenger);
     int UnloadPassengers();

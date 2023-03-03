@@ -4,7 +4,7 @@ using Dvt.ElevatorSimulator.Models;
 using Dvt.ElevatorSimulator.Strategies;
 
 IElevatorControlSystem system;
-List<IElevator<IPassenger>> elevators;
+List<IElevator<Passenger>> elevators;
 
 string? errorMessage = null;
 
@@ -150,11 +150,11 @@ void EmulatorSetup(int totalElevators, int totalFloors, int maxPassengers)
 {
     elevators = Enumerable.Range(0, totalElevators)
         .Select(_ =>
-            new Elevator(new ElevatorPassengerManager(maxPassengers), totalFloors) as IElevator<IPassenger>)
+            new Elevator(new ElevatorPassengerManager(maxPassengers), totalFloors) as IElevator<Passenger>)
         .ToList();
 
-    IStrategy<IPassenger> schedulingStrategy = new BestSelectionStrategy();
-    system = new ElevatorControlSystem<IPassenger>(schedulingStrategy, elevators);
+    IStrategy<Passenger> schedulingStrategy = new BestSelectionStrategy();
+    system = new ElevatorControlSystem<Passenger>(schedulingStrategy, elevators);
 }
 
 int GetTotalElevatorsDisplay()

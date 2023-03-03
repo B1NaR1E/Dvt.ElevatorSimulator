@@ -3,12 +3,11 @@ using Dvt.ElevatorSimulator.Interfaces;
 
 namespace Dvt.ElevatorSimulator.Models;
 
-public class Elevator : ElevatorBase<Passenger>
+public class ElevatorWithWeightLimit : ElevatorBase<PassengerWithWeight>
 {
     private readonly int _totalFloors;
 
-    public Elevator(IPassengerManager<Passenger> passengerManager, int totalFloors) 
-        : base(passengerManager)
+    public ElevatorWithWeightLimit(IPassengerManager<PassengerWithWeight> passengerManager, int totalFloors) : base(passengerManager)
     {
         _totalFloors = totalFloors;
     }
@@ -18,13 +17,13 @@ public class Elevator : ElevatorBase<Passenger>
         return Stops.Any() ? Stops.MinBy(s => Math.Abs(s - CurrentFloor)) : DestinationFloor;
     }
 
-    protected override bool LoadPassenger(List<Passenger> passengers)
+    protected override bool LoadPassenger(List<PassengerWithWeight> passengers)
     {
         foreach (var passenger in passengers)
         {
             PassengerManager.LoadPassenger(passenger);
         }
-
+        
         var destinationFloor = passengers.First().DestinationFloor;
 
         if (PassengerManager.OverPassengerLimit)

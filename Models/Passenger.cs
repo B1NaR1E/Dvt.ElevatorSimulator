@@ -2,7 +2,7 @@
 
 namespace Dvt.ElevatorSimulator.Models;
 
-public class Passenger : IPassenger
+public class Passenger
 {
     public Passenger(int originatingFloor, int destinationFloor)
     {

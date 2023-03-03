@@ -4,7 +4,7 @@ using Dvt.ElevatorSimulator.Models;
 
 namespace Dvt.ElevatorSimulator;
 
-public class ElevatorControlSystem<TPassenger> : IElevatorControlSystem where TPassenger : class, IPassenger
+public class ElevatorControlSystem<TPassenger> : IElevatorControlSystem where TPassenger : Passenger
 {
     private readonly IStrategy<TPassenger> _schedulingStrategy;
     private List<IElevator<TPassenger>> Elevators { get; }
@@ -36,6 +36,7 @@ public class ElevatorControlSystem<TPassenger> : IElevatorControlSystem where TP
     }
     
     //Create job queues for each elevator. Uses elevator's Id as the queue Id
+    //I can remove the queues completely if I change UnloadPassengers() to return List<TPassenger> instead an integer.
     private void CreateElevatorQueues()
     {
         foreach (var elevator in Elevators)
