@@ -8,7 +8,7 @@ public interface IPassengerManager<TPassenger>
     bool HasPassengers { get; }
     bool OverPassengerLimit { get; }
     void LoadPassenger(TPassenger passenger);
-    List<TPassenger> UnloadPassengers(int floorNumber);
-    List<TPassenger> UnloadOverLimitPassengers(int floorNumber);
+    IEnumerable<TPassenger> UnloadPassengers(int floorNumber);
+    IEnumerable<TPassenger> UnloadOverLimitPassengers(int floorNumber);
     int TotalPassenger();
 }

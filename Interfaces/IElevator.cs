@@ -12,8 +12,8 @@ public interface IElevator<TPassenger> where TPassenger : Passenger
     State State { get; }
     bool HasPassengers { get; }
     List<int> Stops { get; }
-    bool LoadPassenger(List<TPassenger> passenger);
-    List<TPassenger> UnloadPassengers();
+    bool LoadPassenger(IEnumerable<TPassenger> passenger);
+    IEnumerable<TPassenger> UnloadPassengers();
     void AddStop(int destinationFloor);
     void Move();
     int TotalPassengers();

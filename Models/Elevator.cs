@@ -18,7 +18,7 @@ public class Elevator : ElevatorBase<Passenger>
         return Stops.Any() ? Stops.MinBy(s => Math.Abs(s - CurrentFloor)) : DestinationFloor;
     }
 
-    protected override bool LoadPassenger(List<Passenger> passengers)
+    protected override bool LoadPassenger(IEnumerable<Passenger> passengers)
     {
         foreach (var passenger in passengers)
         {
@@ -37,7 +37,7 @@ public class Elevator : ElevatorBase<Passenger>
         return true;
     }
 
-    protected override List<Passenger> UnloadPassengers()
+    protected override IEnumerable<Passenger> UnloadPassengers()
     {
         if (!PassengerManager.OverPassengerLimit) 
             return PassengerManager.UnloadPassengers(CurrentFloor);

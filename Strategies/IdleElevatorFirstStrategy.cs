@@ -6,7 +6,7 @@ namespace Dvt.ElevatorSimulator.Strategies;
 
 public class IdleElevatorFirstStrategy: IStrategy<Passenger>
 {
-    public Guid ProcessRequest(List<IElevator<Passenger>> elevators, ElevatorCallRequest request)
+    public Guid ProcessRequest(IEnumerable<IElevator<Passenger>> elevators, ElevatorCallRequest request)
     {
         IElevator<Passenger>? selectedElevator = null;
         

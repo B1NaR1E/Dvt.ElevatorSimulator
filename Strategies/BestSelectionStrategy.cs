@@ -7,7 +7,7 @@ namespace Dvt.ElevatorSimulator.Strategies;
 
 public class BestSelectionStrategy: IStrategy<Passenger>
 {
-    public Guid ProcessRequest(List<IElevator<Passenger>> elevators, ElevatorCallRequest request)
+    public Guid ProcessRequest(IEnumerable<IElevator<Passenger>> elevators, ElevatorCallRequest request)
     {
         IElevator<Passenger>? selectedElevator = null;
 

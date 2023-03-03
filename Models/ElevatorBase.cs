@@ -38,7 +38,7 @@ public abstract class ElevatorBase<TPassenger> : IElevator<TPassenger>
         Stops = new List<int>();
     }
 
-    bool IElevator<TPassenger>.LoadPassenger(List<TPassenger> passengers)
+    bool IElevator<TPassenger>.LoadPassenger(IEnumerable<TPassenger> passengers)
     {
         return LoadPassenger(passengers);
     }
@@ -69,7 +69,7 @@ public abstract class ElevatorBase<TPassenger> : IElevator<TPassenger>
         Stops.Remove(CurrentFloor);
     }
 
-    List<TPassenger> IElevator<TPassenger>.UnloadPassengers()
+    IEnumerable<TPassenger> IElevator<TPassenger>.UnloadPassengers()
     {
         return UnloadPassengers();
     }
@@ -81,6 +81,6 @@ public abstract class ElevatorBase<TPassenger> : IElevator<TPassenger>
     protected abstract void MoveUp();
     protected abstract void MoveDown();
     protected abstract int GetDestination();
-    protected abstract bool LoadPassenger(List<TPassenger> passengers);
-    protected abstract List<TPassenger> UnloadPassengers();
+    protected abstract bool LoadPassenger(IEnumerable<TPassenger> passengers);
+    protected abstract IEnumerable<TPassenger> UnloadPassengers();
 }
