@@ -37,20 +37,13 @@ public class Elevator : ElevatorBase<Passenger>
         return true;
     }
 
-    protected override int UnloadPassengers()
+    protected override List<Passenger> UnloadPassengers()
     {
-        int totalPassengersUnloaded;
-        if (PassengerManager.OverPassengerLimit)
-        {
-            State = State.Stopped;
-            totalPassengersUnloaded = PassengerManager.UnloadOverLimitPassengers(CurrentFloor);
-        }
-        else
-        {
-            totalPassengersUnloaded = PassengerManager.UnloadPassengers(CurrentFloor);
-        }
-
-        return totalPassengersUnloaded;
+        if (!PassengerManager.OverPassengerLimit) 
+            return PassengerManager.UnloadPassengers(CurrentFloor);
+        
+        State = State.Stopped;
+        return PassengerManager.UnloadOverLimitPassengers(CurrentFloor);
     }
 
     protected override void MoveUp()

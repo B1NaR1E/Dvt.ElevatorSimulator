@@ -13,7 +13,7 @@ public interface IElevator<TPassenger> where TPassenger : Passenger
     bool HasPassengers { get; }
     List<int> Stops { get; }
     bool LoadPassenger(List<TPassenger> passenger);
-    int UnloadPassengers();
+    List<TPassenger> UnloadPassengers();
     void AddStop(int destinationFloor);
     void Move();
     int TotalPassengers();

@@ -21,9 +21,11 @@ public class ElevatorPassengerManager : IPassengerManager<Passenger>
         _passengers.Add(passenger);
     }
 
-    public int UnloadPassengers(int floorNumber)
+    public List<Passenger> UnloadPassengers(int floorNumber)
     {
-        return _passengers.RemoveAll(p => p.DestinationFloor == floorNumber);
+        var passengers = _passengers.Where(p => p.DestinationFloor == floorNumber);
+        _passengers.RemoveAll(p => p.DestinationFloor == floorNumber);
+        return passengers.ToList();
     }
 
     public int TotalPassenger()
@@ -31,8 +33,10 @@ public class ElevatorPassengerManager : IPassengerManager<Passenger>
         return _passengers.Count;
     }
 
-    public int UnloadOverLimitPassengers(int floorNumber)
+    public List<Passenger> UnloadOverLimitPassengers(int floorNumber)
     {
-        return _passengers.RemoveAll(p => p.OriginatingFloor == floorNumber);
+        var passengers = _passengers.Where(p => p.OriginatingFloor == floorNumber);
+        _passengers.RemoveAll(p => p.OriginatingFloor == floorNumber);
+        return passengers.ToList();
     }
 }

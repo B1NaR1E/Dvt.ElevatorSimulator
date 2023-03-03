@@ -22,14 +22,18 @@ public class ElevatorWeightManager : IPassengerManager<PassengerWithWeight>
         _passengers.Add(passenger);
     }
 
-    public int UnloadPassengers(int floorNumber)
+    public List<PassengerWithWeight> UnloadPassengers(int floorNumber)
     {
-        return _passengers.RemoveAll(p => p.DestinationFloor == floorNumber);
+        var passengers = _passengers.Where(p => p.DestinationFloor == floorNumber);
+        _passengers.RemoveAll(p => p.DestinationFloor == floorNumber);
+        return passengers.ToList();
     }
 
-    public int UnloadOverLimitPassengers(int floorNumber)
+    public List<PassengerWithWeight> UnloadOverLimitPassengers(int floorNumber)
     {
-        return _passengers.RemoveAll(p => p.OriginatingFloor == floorNumber);
+        var passengers = _passengers.Where(p => p.OriginatingFloor == floorNumber);
+        _passengers.RemoveAll(p => p.OriginatingFloor == floorNumber);
+        return passengers.ToList();
     }
 
     public int TotalPassenger()
