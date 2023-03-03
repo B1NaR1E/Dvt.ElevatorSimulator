@@ -10,7 +10,9 @@ public class IdleElevatorFirstStrategy: IStrategy<Passenger>
     {
         IElevator<Passenger>? selectedElevator = null;
         
-        var staticElevators = elevators.Where(e => e.Direction == Direction.Static && e.State != State.OverLimit)
+        var staticElevators = elevators.Where(e => 
+                e.Direction == Direction.Static && 
+                e.State != State.OverLimit)
             .ToList();
 
         if (staticElevators.Any())
